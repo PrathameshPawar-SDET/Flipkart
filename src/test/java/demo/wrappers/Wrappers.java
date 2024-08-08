@@ -81,5 +81,20 @@ public class Wrappers {
         return count;
     }
 
+ //   (//div[@class='DOjaWF gdgoEp'])[1]//div[contains(@class,'cPHDOP ')][2]//div[@class='_75nlfW']
+
+//    public static int productcount(WebDriver driver, List<WebElement> Products, WebElement title, WebElement rating){
+//        int count = 0;
+//
+//        for(int i =1;i<=Products.size();i++){
+//            try{
+//
+//
+//            }catch (Exception e){
+//                e.printStackTrace();
+//            }
+//        }
+//    }
+
 
 }

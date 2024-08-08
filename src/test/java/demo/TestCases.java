@@ -19,8 +19,11 @@ import org.testng.annotations.Test;
 import java.security.PrivateKey;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 
 import io.github.bonigarcia.wdm.WebDriverManager;
@@ -43,12 +46,18 @@ public class TestCases {
      @FindBy(xpath = "//span[contains(@id,'productRating')]")
      private  List<WebElement> rating;
 
+     @FindBy(xpath = "(//div[@class='QCKZip hpLdC3'])[1]")
+     private  WebElement fourandabove;
+
+//     @FindBy(xpath = "(//div[@class='DOjaWF gdgoEp'])[1]//div[contains(@class,'cPHDOP ')]//div[@class='_75nlfW']")
+//     private  List<WebElement> Productsxpath;
+
     /*
      * TODO: Write your tests here with testng @Test annotation. 
      * Follow `testCase01` `testCase02`... format or what is provided in instructions
      */
 
-    @Test
+   // @Test
     public void testCase01(){
         System.out.println("Start with testcase 01");
         driver.get("https://www.flipkart.com/");
@@ -60,12 +69,128 @@ public class TestCases {
 
         System.out.println("Count of items with rating less than or equal to 4 stars: "+count);
 
+    }
+
+//    @Test
+    public void testCase02() throws InterruptedException {
+        System.out.println("Start with testcase 02");
+        driver.get("https://www.flipkart.com/");
+
+        Wrappers.sendkeys(driver,searchElement,"iPhone");
+        Wrappers.click(driver,SearchButton);
+        Thread.sleep(2000);
+    //    (//div[@class='DOjaWF gdgoEp'])[1]//div[contains(@class,'cPHDOP ')][1]//div[@class='_75nlfW']
+
+        List<WebElement> Products = driver.findElements(By.xpath("(//div[@class='DOjaWF gdgoEp'])[1]//div[contains(@class,'cPHDOP ')]//div[@class='_75nlfW']"));
+        boolean condition = false;
+
+        for(int i=1;i<=Products.size();i++){
+            try {
+
+                WebElement Title = driver.findElement(By.xpath("(//div[@class='DOjaWF gdgoEp'])[1]//div[contains(@class,'cPHDOP ')][" + i + "]//div[@class='_75nlfW']//div[contains(@class,'KzDlHZ')]"));
+                WebElement Discount = driver.findElement(By.xpath("(//div[@class='DOjaWF gdgoEp'])[1]//div[contains(@class,'cPHDOP ')][" + i + "]//div[@class='_75nlfW']//div[contains(@class,'UkUFwK')]"));
+
+                String titleText = Title.getText();
+                String discountText = Discount.getText();
+
+                int discountpercentage = Integer.parseInt(discountText.replaceAll("[^0-9]", ""));
+                if (discountpercentage > 17) {
+                    System.out.println("Title: " + titleText + " have Discount of: " + discountpercentage + " %");
+                    condition = true;
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+
+        }
+        if(!condition){
+            System.out.println("No product found with discount more than 17%");
+        }
+
+
+    }
+
+    @Test
+    public void testCase03() throws InterruptedException {
+        System.out.println("Start with testcase 03");
+        driver.get("https://www.flipkart.com/");
+
+        Wrappers.sendkeys(driver, searchElement, "Coffee Mug");
+        Wrappers.click(driver, SearchButton);
+        Wrappers.click(driver,fourandabove);
+        Thread.sleep(2000);
+
+        List<WebElement> ProductElements = driver.findElements(By.xpath("(//div[@class='DOjaWF gdgoEp'])[1]//div[contains(@class,'cPHDOP ')]//div[contains(@data-id,'MUG')]"));
+
+
+        List<Map<String, Object>> products = new ArrayList<>();
+
+        for(WebElement ProductElement : ProductElements){
+            try {
+
+                WebElement TitleElement = ProductElement.findElement(By.xpath("//a[@class='wjcEIp']"));
+                String titlevalue =TitleElement.getAttribute("title");
+                WebElement ImageElement = ProductElement.findElement(By.xpath("//img[@class='DByuf4']"));
+                String imageURL = ImageElement.getAttribute("src");
+
+                WebElement ReviewElement = null;
+                try {
+                    ReviewElement = ProductElement.findElement(By.xpath("//span[@class='Wphh3N']"));
+                }catch (Exception e){
+                    System.out.println("No review element found for title: "+titlevalue);
+                }
+
+                int reviewcount =0;
+                if(ReviewElement!=null){
+                    String review = ReviewElement.getText();
+                    if(!review.trim().isEmpty()){
+                        try {
+                            reviewcount = Integer.parseInt(review.replaceAll("[^0-9]",""));
+                        }catch (NumberFormatException e){
+                            System.err.println("Invalid Review count :"+review);
+                        }
+                    }
+                }else {
+                    System.out.println("Review count is not available for product with title: " + titlevalue);
+                }
+
+                Map<String, Object> ProductDetails = new HashMap<>();
+                ProductDetails.put("title", titlevalue);
+                ProductDetails.put("imageurl", imageURL);
+                ProductDetails.put("review", reviewcount);
+
+                products.add(ProductDetails);
 
 
 
 
 
+            }catch (Exception e){
+                e.printStackTrace();
+            }
 
+
+        }
+        List<Map<String, Object>> topProducts = products.stream()
+                .filter(product -> product.get("reviewcount") != null)  // Filter out products without review count
+                .sorted((p1, p2) -> {
+                    Integer reviewCount1 = (Integer) p1.get("reviewcount");
+                    Integer reviewCount2 = (Integer) p2.get("reviewcount");
+                    if (reviewCount1 == null) reviewCount1 = 0;
+                    if (reviewCount2 == null) reviewCount2 = 0;
+                    return Integer.compare(reviewCount2, reviewCount1);  // Sort in descending order
+                })
+                .limit(5)
+                .collect(Collectors.toList());
+
+        if (!topProducts.isEmpty()) {
+            for (Map<String, Object> product : topProducts) {
+                System.out.println("Title: " + product.get("title") + " - Image URL: " + product.get("imageURL") + " - Review Count: " + product.get("reviewCount"));
+            }
+        } else {
+            System.out.println("No products found with reviews.");
+        }
     }
 
 
