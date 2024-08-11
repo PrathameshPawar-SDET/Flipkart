@@ -28,7 +28,7 @@ public class Wrappers {
 
     public static boolean click(WebDriver driver, WebElement element){
         try{
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
             wait.until(ExpectedConditions.elementToBeClickable(element));
             Actions act = new Actions(driver);
             act.moveToElement(element);
@@ -49,7 +49,7 @@ public class Wrappers {
 
 
     public static boolean sendkeys(WebDriver driver, WebElement inputbox, String keystosend){
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
         wait.until(ExpectedConditions.visibilityOf(inputbox));
         try {
             inputbox.sendKeys(keystosend);
@@ -70,6 +70,7 @@ public class Wrappers {
             try{
                 double ratingvalue =Double.parseDouble(rating.getText().split(" ")[0]);
                 if(ratingvalue<=4.0){
+
                     count++;
                 }
 
